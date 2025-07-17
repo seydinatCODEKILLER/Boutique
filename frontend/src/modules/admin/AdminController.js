@@ -1,3 +1,5 @@
+import { BoutiquierEditModal } from "./AdminBoutiquierEditModal.js";
+
 export class AdminController {
   constructor(app) {
     this.app = app;
@@ -69,16 +71,54 @@ export class AdminController {
   async handleBoutiquierAction(action, id) {
     switch (action) {
       case "edit":
-        return this.#editBoutiquier(id);
+        return await this.#editBoutiquier(id);
       case "delete":
-        return this.#deleteBoutiquier(id);
+        return await this.#deleteBoutiquier(id);
       default:
         throw new Error(`Action ${action} non supportée`);
     }
   }
 
   async #editBoutiquier(id) {
-    console.log(id);
+    try {
+      const boutiquier = this.cache.boutiquiers?.find((b) => b.id == id);
+      console.log(boutiquier);
+
+      if (!boutiquier) {
+        throw new Error("Boutiquier non trouvé");
+      }
+
+      const editModal = new BoutiquierEditModal(this.app, boutiquier);
+      editModal.open();
+    } catch (error) {
+      this.app.services.notifications.show(
+        error.message || "Erreur lors de l'édition",
+        "error"
+      );
+    }
+  }
+
+  async updateBoutiquier(id, data) {
+    try {
+      console.log(data);
+
+      const result = await this.service.updateBoutiquier(id, data);
+
+      this.cache.boutiquiers = null;
+      this.app.services.notifications.show(
+        "Boutiquier mis à jour avec succès",
+        "success"
+      );
+
+      this.app.eventBus.publish("boutiquiers:updated");
+      return result;
+    } catch (error) {
+      this.app.services.notifications.show(
+        error.message || "Erreur lors de la mise à jour",
+        "error"
+      );
+      throw error;
+    }
   }
 
   async #deleteBoutiquier(id) {

@@ -418,7 +418,6 @@ export class Modal {
     }
   }
 
-  // Static methods for common modal types
   static alert(config) {
     const defaultConfig = {
       title: config.title || "Alert",

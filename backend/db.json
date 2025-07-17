@@ -2,13 +2,13 @@
   "utilisateurs": [
     {
       "id": "1",
-      "nom": "Thiam",
+      "nom": "Thiam3",
       "prenom": "Ousmane",
       "email": "ousmane020@gmail.com",
       "password": "liverpool",
       "avatar": "https://pikaso.cdnpk.net/public/production/prompt-templates/38.jpeg?preview=1",
       "role": "boutiquier",
-      "telephone": "779803456",
+      "telephone": "+221779803456",
       "deleted": false
     },
     {

@@ -18,4 +18,22 @@ export default class ApiService {
     });
     return response.json();
   }
+
+  async patch(endpoint, data) {
+    const response = await fetch(`${this.baseURL}${endpoint}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    });
+    return response.json();
+  }
+
+  async delete(endpoint, id) {
+    const response = await fetch(`${this.baseURL}/${endpoint}`, {
+      method: "DELETE",
+    });
+    return response.json();
+  }
 }

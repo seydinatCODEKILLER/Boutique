@@ -37,4 +37,21 @@ export class AdminService extends AbstractService {
       throw error;
     }
   }
+
+  async updateBoutiquier(id, data) {
+    try {
+      const userResponse = await this.api.patch(`/utilisateurs/${id}`, data);
+      return userResponse;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getBoutiquier(id) {
+    try {
+      return await this.api.get(`/utilisateurs/${id}`);
+    } catch (error) {
+      throw error;
+    }
+  }
 }
