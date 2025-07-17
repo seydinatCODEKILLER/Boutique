@@ -152,7 +152,7 @@ export class BoutiquierCard {
       "flex justify-end items-center pt-2 border-t border-base-200";
 
     if (this.config.actions) {
-      cardActions.innerHTML = this.renderActions(boutiquier);
+      cardActions.appendChild(this.renderActions(boutiquier));
     }
 
     // Assemble card body
@@ -168,35 +168,70 @@ export class BoutiquierCard {
     return card;
   }
 
-  renderActions(boutiquier) {
-    const actions =
-      typeof this.config.actions.items === "function"
-        ? this.config.actions.items(boutiquier)
-        : this.config.actions.items;
+  // renderActions(boutiquier) {
+  //   const actions =
+  //     typeof this.config.actions.items === "function"
+  //       ? this.config.actions.items(boutiquier)
+  //       : this.config.actions.items;
 
-    const dropdownId = `dropdown-${this.config.containerId}-${boutiquier.id}`;
+  //   const dropdownId = `dropdown-${this.config.containerId}-${boutiquier.id}`;
 
-    return `
-      <div class="dropdown dropdown-right" id="${dropdownId}">
-        <button tabindex="0" class="btn btn-sm btn-ghost">
-          <i class="ri-more-2-fill"></i>
-        </button>
-        <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-46">
-          ${actions
-            .map(
-              (action) => `
-            <li>
-              <a data-action="${action.name}" data-id="${boutiquier.id}" 
-                 class="${action.className || ""}">
-                <i class="${action.icon}"></i>${action.label}
-              </a>
-            </li>
-          `
-            )
-            .join("")}
-        </ul>
-      </div>
-    `;
+  //   return `
+  //     <div class="dropdown dropdown-right" id="${dropdownId}">
+  //       <button tabindex="0" class="btn btn-sm btn-ghost">
+  //         <i class="ri-more-2-fill"></i>
+  //       </button>
+  //       <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-46">
+  //         ${actions
+  //           .map(
+  //             (action) => `
+  //           <li>
+  //             <a data-action="${action.name}" data-id="${boutiquier.id}"
+  //                class="${action.className || ""}">
+  //               <i class="${action.icon}"></i>${action.label}
+  //             </a>
+  //           </li>
+  //         `
+  //           )
+  //           .join("")}
+  //       </ul>
+  //     </div>
+  //   `;
+  // }
+
+  renderActions(item) {
+    const actionsContainer = document.createElement("div");
+    actionsContainer.className = "flex gap-2";
+
+    this.config.actions.items
+      .filter((action) => !action.visible || action.visible(item))
+      .forEach((action) => {
+        const button = document.createElement("button");
+        button.className = `btn btn-sm ${
+          typeof action.className === "function"
+            ? action.className(item)
+            : action.className || ""
+        }`;
+
+        button.innerHTML = `
+        <i class="${
+          typeof action.icon === "function" ? action.icon(item) : action.icon
+        }"></i>
+        ${
+          typeof action.label === "function" ? action.label(item) : action.label
+        }
+      `;
+
+        button.onclick = () => {
+          const actionType =
+            typeof action.action === "function" ? action.action(item) : null;
+          this.config.onAction(action.name, item.id, actionType);
+        };
+
+        actionsContainer.appendChild(button);
+      });
+
+    return actionsContainer;
   }
 
   updatePagination() {

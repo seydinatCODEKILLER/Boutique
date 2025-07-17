@@ -2,7 +2,7 @@
   "utilisateurs": [
     {
       "id": "1",
-      "nom": "Thiam3",
+      "nom": "Thiam4",
       "prenom": "Ousmane",
       "email": "ousmane020@gmail.com",
       "password": "liverpool",
@@ -38,7 +38,9 @@
     {
       "id": "1",
       "id_utilisateur": "3",
-      "id_boutiquier": ["1"]
+      "id_boutiquier": [
+        "1"
+      ]
     }
   ],
   "admin": [

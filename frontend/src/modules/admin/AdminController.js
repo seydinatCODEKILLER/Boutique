@@ -1,3 +1,4 @@
+import { Modal } from "../../components/modal/Modal.js";
 import { BoutiquierEditModal } from "./AdminBoutiquierEditModal.js";
 
 export class AdminController {
@@ -68,12 +69,14 @@ export class AdminController {
     );
   }
 
-  async handleBoutiquierAction(action, id) {
+  async handleBoutiquierAction(action, id, actionType) {
     switch (action) {
       case "edit":
-        return await this.#editBoutiquier(id);
-      case "delete":
-        return await this.#deleteBoutiquier(id);
+        return this.#editBoutiquier(id);
+      case "toggleStatus":
+        return actionType === "delete"
+          ? this.#deleteBoutiquier(id)
+          : this.#restoreBoutiquier(id);
       default:
         throw new Error(`Action ${action} non supportée`);
     }
@@ -81,6 +84,8 @@ export class AdminController {
 
   async #editBoutiquier(id) {
     try {
+      console.log(id);
+
       const boutiquier = this.cache.boutiquiers?.find((b) => b.id == id);
       console.log(boutiquier);
 
@@ -122,7 +127,80 @@ export class AdminController {
   }
 
   async #deleteBoutiquier(id) {
-    console.log(id);
+    try {
+      console.log(id);
+
+      const confirmed = await this.showDeleteConfirmation();
+      if (!confirmed) return;
+
+      await this.service.softDeleteBoutiquier(id);
+      this.cache.boutiquiers = null;
+
+      this.app.services.notifications.show(
+        "Boutiquier désactivé avec succès",
+        "success"
+      );
+
+      this.app.eventBus.publish("boutiquiers:updated");
+    } catch (error) {
+      this.app.services.notifications.show(
+        error.message || "Erreur lors de la désactivation",
+        "error"
+      );
+      throw error;
+    }
+  }
+
+  async #restoreBoutiquier(id) {
+    try {
+      const confirmed = await this.showRestoreConfirmation();
+      if (!confirmed) return;
+
+      await this.service.restoreBoutiquier(id);
+      this.cache.boutiquiers = null;
+
+      this.app.services.notifications.show(
+        "Boutiquier restauré avec succès",
+        "success"
+      );
+      this.app.eventBus.publish("boutiquiers:updated");
+    } catch (error) {
+      this.handleActionError(error, "restauration");
+    }
+  }
+
+  async showDeleteConfirmation() {
+    return new Promise((resolve) => {
+      Modal.confirm({
+        title: "Confirmer la désactivation",
+        content: "Êtes-vous sûr de vouloir désactiver ce boutiquier ?",
+        confirmText: "Désactiver",
+        cancelText: "Annuler",
+        onConfirm: () => resolve(true),
+        onCancel: () => resolve(false),
+      });
+    });
+  }
+
+  async showRestoreConfirmation() {
+    return new Promise((resolve) => {
+      Modal.confirm({
+        title: "Confirmer la restauration",
+        content: "Êtes-vous sûr de vouloir restaurer ce boutiquier ?",
+        confirmText: "Restaurer",
+        cancelText: "Annuler",
+        onConfirm: () => resolve(true),
+        onCancel: () => resolve(false),
+      });
+    });
+  }
+
+  handleActionError(error, actionName) {
+    this.app.services.notifications.show(
+      error.message || `Erreur lors de la ${actionName}`,
+      "error"
+    );
+    throw error;
   }
 
   #formatStats(rawStats) {

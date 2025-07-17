@@ -54,4 +54,25 @@ export class AdminService extends AbstractService {
       throw error;
     }
   }
+
+  async softDeleteBoutiquier(id) {
+    try {
+      const response = await this.api.patch(`/utilisateurs/${id}`, {
+        deleted: true,
+      });
+      return response;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async restoreBoutiquier(id) {
+    try {
+      return await this.api.patch(`/utilisateurs/${id}`, {
+        deleted: false,
+      });
+    } catch (error) {
+      throw error;
+    }
+  }
 }

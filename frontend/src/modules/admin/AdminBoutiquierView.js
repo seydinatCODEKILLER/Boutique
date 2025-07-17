@@ -124,12 +124,23 @@ export class AdminBoutiquierView extends AbstractView {
       data: this.localBoutiquiers,
       actions: {
         items: [
-          { name: "edit", label: "Modifier", icon: "ri-edit-line" },
-          { name: "delete", label: "Supprimer", icon: "ri-delete-bin-line" },
+          {
+            name: "edit",
+            label: "Modifier",
+            icon: "ri-edit-line",
+            visible: (item) => !item.deleted,
+          },
+          {
+            name: "toggleStatus",
+            label: this.getStatusButtonLabel,
+            icon: this.getStatusButtonIcon,
+            className: this.getStatusButtonClass,
+            action: (item) => (item.deleted ? "restore" : "delete"),
+          },
         ],
       },
-      onAction: (action, id) =>
-        this.controller.handleBoutiquierAction(action, id),
+      onAction: (action, id, actionType) =>
+        this.controller.handleBoutiquierAction(action, id, actionType),
     });
 
     container.appendChild(cards.render());
@@ -160,23 +171,25 @@ export class AdminBoutiquierView extends AbstractView {
       ],
       data: this.localBoutiquiers,
       actions: {
+        displayMode: "direct",
         items: [
           {
             name: "edit",
-            label: "Modifier",
             icon: "ri-edit-line",
-            type: "direct",
+            className: "btn-primary",
+            visible: (item) => !item.deleted,
           },
           {
-            name: "delete",
-            label: "Supprimer",
-            icon: "ri-delete-bin-line",
-            type: "direct",
+            name: "toggleStatus",
+            icon: (item) =>
+              item.deleted ? "ri-refresh-line" : "ri-delete-bin-line",
+            className: (item) => (item.deleted ? "btn-success" : "btn-error"),
+            action: (item) => (item.deleted ? "restore" : "delete"),
           },
         ],
       },
-      onAction: (action, id) =>
-        this.controller.handleBoutiquierAction(action, id),
+      onAction: (action, id, actionType) =>
+        this.controller.handleBoutiquierAction(action, id, actionType),
     });
     container.appendChild(table.render());
     table.update(this.localBoutiquiers, 1);
@@ -185,5 +198,17 @@ export class AdminBoutiquierView extends AbstractView {
   cleanup() {
     if (this.fab) this.fab.destroy();
     if (this.formModal) this.formModal.close();
+  }
+
+  getStatusButtonLabel(item) {
+    return item.deleted ? "Restaurer" : "Désactiver";
+  }
+
+  getStatusButtonIcon(item) {
+    return item.deleted ? "ri-refresh-line" : "ri-delete-bin-line";
+  }
+
+  getStatusButtonClass(item) {
+    return item.deleted ? "btn-success" : "btn-error";
   }
 }

@@ -529,36 +529,97 @@ export class ModernTable {
   }
 
   renderActions(item) {
-    const actions =
+    const actionsContainer = document.createElement("div");
+    actionsContainer.className = "flex gap-2 justify-end";
+
+    // Get actions (support both array and function)
+    const allActions =
       typeof this.config.actions.items === "function"
         ? this.config.actions.items(item)
         : this.config.actions.items;
 
-    // Création du conteneur principal
-    const actionsContainer = document.createElement("div");
-    actionsContainer.className = "flex space-x-1";
-
-    // Séparation des actions directes et dropdown
-    const directActions = actions.filter((a) => a.type === "direct");
-    const dropdownActions = actions.filter(
-      (a) => !a.type || a.type === "dropdown"
+    // Filter visible actions
+    const visibleActions = allActions.filter(
+      (action) => !action.visible || action.visible(item)
     );
 
-    // Ajout des actions directes
-    if (directActions.length > 0) {
-      directActions.forEach((action) => {
-        const btn = this.createActionButton(item.id, action);
-        actionsContainer.appendChild(btn);
+    // Get display mode (default to 'auto')
+    const displayMode = this.config.actions.displayMode || "auto";
+
+    if (
+      displayMode === "dropdown" ||
+      (displayMode === "auto" && visibleActions.length > 3)
+    ) {
+      // Mode dropdown
+      return this.createActionsDropdown(item, visibleActions);
+    } else {
+      // Mode direct (correction ici ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓)
+      visibleActions.forEach((action) => {
+        actionsContainer.appendChild(this.createActionButton(action, item)); // ✅ bon ordre
       });
+      return actionsContainer;
     }
+  }
 
-    // Ajout du dropdown si nécessaire
-    if (dropdownActions.length > 0) {
-      const dropdown = this.createDropdownMenu(item.id, dropdownActions);
-      actionsContainer.appendChild(dropdown);
-    }
+  createActionButton(action, item) {
+    const button = document.createElement("button");
+    console.log("Création bouton action:", action.name, "pour l’ID:", item.id);
 
-    return actionsContainer;
+    button.className = `btn btn-sm ${
+      typeof action.className === "function"
+        ? action.className(item)
+        : action.className || ""
+    }`;
+
+    button.setAttribute("data-id", item.id);
+    button.setAttribute("data-action", action.name);
+
+    const icon =
+      typeof action.icon === "function" ? action.icon(item) : action.icon;
+    button.innerHTML = `<i class="${icon}"></i>`;
+
+    button.onclick = (e) => {
+      e.stopPropagation();
+      const actionType =
+        typeof action.action === "function" ? action.action(item) : null;
+
+      this.config.onAction?.(action.name, item.id, actionType);
+    };
+
+    return button;
+  }
+
+  createActionsDropdown(item, actions) {
+    const dropdownContainer = document.createElement("div");
+    dropdownContainer.className = "dropdown dropdown-end";
+
+    // Dropdown trigger
+    const dropdownTrigger = document.createElement("button");
+    dropdownTrigger.className = "btn btn-sm btn-ghost";
+    dropdownTrigger.innerHTML = `<i class="ri-more-2-fill"></i>`;
+
+    // Dropdown menu
+    const dropdownMenu = document.createElement("ul");
+    dropdownMenu.className =
+      "dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52";
+
+    // Add actions to dropdown
+    actions.forEach((action) => {
+      const li = document.createElement("li");
+
+      // ✅ Appel corrigé ici : action d'abord, puis item
+      const actionButton = this.createActionButton(action, item);
+
+      // Retirer btn-sm si nécessaire
+      actionButton.className = actionButton.className.replace("btn-sm", "");
+      li.appendChild(actionButton);
+      dropdownMenu.appendChild(li);
+    });
+
+    dropdownContainer.appendChild(dropdownTrigger);
+    dropdownContainer.appendChild(dropdownMenu);
+
+    return dropdownContainer;
   }
 
   updatePagination() {
@@ -856,23 +917,7 @@ export class ModernTable {
     this.eventListeners.push({ element, type, listener });
   }
 
-  createActionButton(id, action) {
-    const button = document.createElement("button");
-    button.className = `btn btn-sm ${
-      action.className || "btn-ghost"
-    } btn-square`;
-    button.dataset.action = action.name;
-    button.dataset.id = id;
-    button.title = action.label;
-
-    const icon = document.createElement("i");
-    icon.className = action.icon;
-    button.appendChild(icon);
-
-    return button;
-  }
-
-  createDropdownMenu(id, actions) {
+  createDropdownMenu(actions, item) {
     const dropdownContainer = document.createElement("div");
     dropdownContainer.className = "dropdown dropdown-end dropdown-hover";
 
@@ -887,7 +932,11 @@ export class ModernTable {
 
     actions.forEach((action) => {
       const li = document.createElement("li");
-      const btn = this.createActionButton(id, action);
+
+      // ✅ Corrigé : on passe bien (action, item) dans cet ordre
+      const btn = this.createActionButton(action, item);
+
+      // Nettoyage des classes si besoin
       btn.className = btn.className.replace("btn-square", "");
       li.appendChild(btn);
       menu.appendChild(li);
