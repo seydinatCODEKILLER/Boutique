@@ -1,8 +1,9 @@
 import { AbstractService } from "../../app/core/AbstractService.js";
+import { Boutiquier } from "../../models/Boutiquer.js";
 
 export class AdminService extends AbstractService {
   constructor({ api }) {
-    super({ api, endpoint: "/boutiquiers" });
+    super({ api });
     this.api = api;
   }
 
@@ -13,15 +14,27 @@ export class AdminService extends AbstractService {
   }
 
   async createBoutiquier(data) {
-    // Ajoute les champs par défaut
-    const payload = {
-      ...data,
-      deleted: false,
-      avatar: "",
-      role: "boutiquier",
-    };
+    try {
+      const idUtilisateur = await this.generateId("/utilisateurs");
+      const idBoutiquier = await this.generateId("/boutiquier");
 
-    const response = await this.api.post("/utilisateurs", payload);
-    return response;
+      const boutiquier = new Boutiquier({ ...data, id: idUtilisateur });
+      const userData = boutiquier.toJSON();
+
+      const [userResponse, _] = await Promise.all([
+        this.api.post("/utilisateurs", {
+          id: idUtilisateur,
+          ...userData,
+        }),
+        this.api.post("/boutiquier", {
+          id: idBoutiquier,
+          id_utilisateur: idUtilisateur,
+        }),
+      ]);
+
+      return userResponse;
+    } catch (error) {
+      throw error;
+    }
   }
 }

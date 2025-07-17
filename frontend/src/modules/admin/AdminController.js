@@ -3,6 +3,10 @@ export class AdminController {
     this.app = app;
     this.service = app.getService("admin");
     this.boutiquiers = [];
+    this.cache = {
+      boutiquiers: null,
+      lastUpdated: null,
+    };
   }
 
   async getDashboardStats() {
@@ -15,14 +19,51 @@ export class AdminController {
     }
   }
 
-  async loadBoutiquiers() {
+  async loadBoutiquiers(forceRefresh = false) {
     try {
-      this.boutiquiers = await this.service.getAllBoutiquiers();
-      return this.boutiquiers;
+      if (!forceRefresh && this.cache.boutiquiers && this.isCacheValid()) {
+        return this.cache.boutiquiers;
+      }
+
+      const boutiquiers = await this.service.getAllBoutiquiers();
+      this.cache.boutiquiers = boutiquiers;
+      this.cache.lastUpdated = Date.now();
+      return boutiquiers;
     } catch (error) {
-      console.error("AdminController > loadBoutiquiers failed:", error);
+      this.app.services.notifications.show(
+        "Impossible de charger les boutiquiers",
+        "error"
+      );
       throw error;
     }
+  }
+
+  async createBoutiquier(formData) {
+    try {
+      const result = await this.service.createBoutiquier(formData);
+
+      this.cache.boutiquiers = null;
+      this.app.services.notifications.show(
+        "Boutiquier créé avec succès",
+        "success"
+      );
+
+      this.app.eventBus.publish("boutiquiers:updated");
+      return result;
+    } catch (error) {
+      this.app.services.notifications.show(
+        error.message || "Erreur lors de la création",
+        "error"
+      );
+      throw error;
+    }
+  }
+
+  isCacheValid() {
+    return (
+      this.cache.lastUpdated &&
+      Date.now() - this.cache.lastUpdated < 5 * 60 * 1000
+    );
   }
 
   async handleBoutiquierAction(action, id) {

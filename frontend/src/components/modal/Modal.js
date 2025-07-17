@@ -40,29 +40,33 @@ export class Modal {
     this.modal.id = this.config.id;
     this.modal.className =
       "modal fixed inset-0 flex items-center justify-center p-4 invisible opacity-0 transition-all duration-300 ease-in-out";
-    this.modal.setAttribute("role", "dialog");
-    this.modal.setAttribute("aria-modal", "true");
-    this.modal.setAttribute("aria-labelledby", `${this.config.id}-title`);
-    this.modal.setAttribute("aria-describedby", `${this.config.id}-desc`);
-    this.modal.setAttribute("tabindex", "-1");
     this.modal.style.zIndex = this.zIndex;
 
-    // Backdrop
+    // Backdrop - doit être en dessous mais ne doit pas capturer les clics sur le modal-box
     this.backdrop = document.createElement("div");
     this.backdrop.className = "modal-backdrop fixed inset-0 bg-black/50";
+    this.backdrop.style.zIndex = "0";
+
+    // Conteneur principal pour le modal-box
+    this.modalContainer = document.createElement("div");
+    this.modalContainer.className =
+      "relative z-10 w-full h-full flex items-center justify-center";
+    this.modalContainer.style.pointerEvents = "none"; // Désactive les clics sur le conteneur
+
     this.modal.appendChild(this.backdrop);
+    this.modal.appendChild(this.modalContainer);
   }
 
   createModalBox() {
     this.modalBox = document.createElement("div");
     this.modalBox.className = `modal-box relative w-full max-w-${this.config.size} bg-base-100 rounded-lg shadow-xl transform transition-all duration-${this.config.animationDuration} ease-in-out scale-95 opacity-0`;
-    this.modalBox.style.zIndex = this.zIndex + 1;
+    this.modalBox.style.pointerEvents = "auto"; // Réactive les clics sur le contenu
 
     if (this.config.scrollable) {
       this.modalBox.classList.add("max-h-[90vh]", "overflow-y-auto");
     }
 
-    this.modal.appendChild(this.modalBox);
+    this.modalContainer.appendChild(this.modalBox);
   }
 
   createHeader() {
@@ -129,8 +133,13 @@ export class Modal {
   createFooterButton(btnConfig) {
     const btn = document.createElement("button");
     btn.className = `modal-btn btn ${btnConfig.className || ""}`;
-    btn.textContent = btnConfig.text;
     btn.dataset.action = btnConfig.action || "default";
+    btn.type = "button";
+
+    btn.innerHTML = `
+    <span class="btn-text">${btnConfig.text}</span>
+    <span class="ml-2 spinner loading loading-spinner hidden"></span>
+  `;
 
     if (btnConfig.onClick) {
       btn.onclick = async (e) => {
@@ -146,6 +155,34 @@ export class Modal {
     return btn;
   }
 
+  setButtonLoading(
+    action = "default",
+    isLoading = true,
+    textLoading = "Chargement...",
+    textDefault = null
+  ) {
+    const btn = this.modal.querySelector(`button[data-action="${action}"]`);
+    if (!btn) return;
+
+    const spinner = btn.querySelector(".spinner");
+    const textSpan = btn.querySelector(".btn-text");
+
+    if (spinner) {
+      spinner.classList.toggle("hidden", !isLoading);
+    }
+
+    if (textSpan) {
+      if (isLoading) {
+        textSpan.textContent = textLoading;
+      } else {
+        textSpan.textContent =
+          textDefault || btn.dataset.originalText || "Valider";
+      }
+    }
+
+    btn.disabled = isLoading;
+  }
+
   createDefaultCloseButton() {
     return this.createFooterButton({
       text: "Fermer",
@@ -157,6 +194,11 @@ export class Modal {
   }
 
   setupEvents() {
+    // Empêche la propagation des clics du modal-box vers le backdrop
+    this.modalBox.addEventListener("click", (e) => {
+      e.stopPropagation();
+    });
+
     if (this.config.closeOnBackdropClick) {
       this.backdrop.addEventListener("click", () => {
         if (this.isTopModal()) {
@@ -164,17 +206,6 @@ export class Modal {
         }
       });
     }
-
-    this.modal.addEventListener("keydown", (e) => {
-      if (!this.isTopModal()) return;
-
-      if (e.key === "Tab") {
-        this.trapFocus(e);
-      } else if (e.key === "Escape") {
-        e.preventDefault();
-        this.close();
-      }
-    });
   }
 
   isTopModal() {

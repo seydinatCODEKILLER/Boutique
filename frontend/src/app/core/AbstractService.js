@@ -1,12 +1,11 @@
 export class AbstractService {
-  constructor({ api, endpoint }) {
+  constructor({ api }) {
     this.api = api;
-    this.endpoint = endpoint;
   }
 
-  async generateId() {
+  async generateId(endpoint) {
     try {
-      const items = await this.api.get(this.endpoint);
+      const items = await this.api.get(endpoint);
       if (!Array.isArray(items) || items.length === 0) {
         return 1;
       }
