@@ -7,6 +7,7 @@ import { AdminService } from "../modules/admin/AdminService.js";
 import { authRoutes } from "../modules/auth/auth.routes.js";
 import { AuthController } from "../modules/auth/AuthController.js";
 import { AuthService } from "../modules/auth/AuthService.js";
+import { ArticleController } from "../modules/boutiquier/article/ArticleController.js";
 import { ArticleService } from "../modules/boutiquier/article/ArticleService.js";
 import { ProductController } from "../modules/boutiquier/product/ProductController.js";
 import { boutiquierRoutes } from "../modules/boutiquier/product/products.routes.js";
@@ -51,6 +52,7 @@ export class App {
       Auth: new AuthController(this),
       admin: new AdminController(this),
       product: new ProductController(this),
+      article: new ArticleController(this),
     };
 
     this.router = new Router(this, {

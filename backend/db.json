@@ -77,6 +77,14 @@
       "id_boutiquier": "1",
       "date_publication": "2023-11-20",
       "deleted": false
+    },
+    {
+      "id": 2,
+      "titre": "Cosmetiques",
+      "contenu": "Reduction du meilleur cosmetique",
+      "id_boutiquier": "1",
+      "date_publication": "2025-07-18",
+      "deleted": false
     }
   ],
   "dettes": [
