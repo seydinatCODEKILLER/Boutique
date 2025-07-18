@@ -196,16 +196,14 @@ export class ProductView extends AbstractView {
   }
 
   getStatusButtonLabel(item) {
-    return item.statut === "disponible" ? "Restaurer" : "Désactiver";
+    return item.deleted ? "Restaurer" : "Désactiver";
   }
 
   getStatusButtonIcon(item) {
-    return item.statut === "disponible"
-      ? "ri-refresh-line"
-      : "ri-delete-bin-line";
+    return item.deleted ? "ri-refresh-line" : "ri-delete-bin-line";
   }
 
   getStatusButtonClass(item) {
-    return item.statut === "disponible" ? "btn-success" : "btn-error";
+    return item.deleted ? "btn-success" : "btn-error";
   }
 }

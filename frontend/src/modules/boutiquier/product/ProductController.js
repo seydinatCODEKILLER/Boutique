@@ -1,3 +1,4 @@
+import { Modal } from "../../../components/modal/Modal.js";
 import { ProductEditModal } from "./ProductEditModal.js";
 
 export class ProductController {
@@ -150,7 +151,77 @@ export class ProductController {
     }
   }
 
-  async #deleteProduct(id) {}
+  async #deleteProduct(id) {
+    const confirmed = await this.showDeleteConfirmation();
+    if (!confirmed) return;
 
-  async #restoreProduct(id) {}
+    await this.service.softDeleteProduit(id);
+    this.cache.products = null;
+
+    this.app.services.notifications.show(
+      "produits désactivé avec succès",
+      "success"
+    );
+
+    this.app.eventBus.publish("produits:updated");
+  }
+  catch(error) {
+    this.app.services.notifications.show(
+      error.message || "Erreur lors de la désactivation",
+      "error"
+    );
+    throw error;
+  }
+
+  async showDeleteConfirmation() {
+    return new Promise((resolve) => {
+      Modal.confirm({
+        title: "Confirmer la désactivation",
+        content: "Êtes-vous sûr de vouloir désactiver ce produits ?",
+        confirmText: "Désactiver",
+        cancelText: "Annuler",
+        onConfirm: () => resolve(true),
+        onCancel: () => resolve(false),
+      });
+    });
+  }
+
+  async #restoreProduct(id) {
+    try {
+      const confirmed = await this.showRestoreConfirmation();
+      if (!confirmed) return;
+
+      await this.service.restoreProduit(id);
+      this.cache.products = null;
+
+      this.app.services.notifications.show(
+        "produit restauré avec succès",
+        "success"
+      );
+      this.app.eventBus.publish("produits:updated");
+    } catch (error) {
+      this.handleActionError(error, "restauration");
+    }
+  }
+
+  async showRestoreConfirmation() {
+    return new Promise((resolve) => {
+      Modal.confirm({
+        title: "Confirmer la restauration",
+        content: "Êtes-vous sûr de vouloir restaurer ce produit ?",
+        confirmText: "Restaurer",
+        cancelText: "Annuler",
+        onConfirm: () => resolve(true),
+        onCancel: () => resolve(false),
+      });
+    });
+  }
+
+  handleActionError(error, actionName) {
+    this.app.services.notifications.show(
+      error.message || `Erreur lors de la ${actionName}`,
+      "error"
+    );
+    throw error;
+  }
 }

@@ -62,4 +62,25 @@ export class ProductService extends AbstractService {
       throw error;
     }
   }
+
+  async softDeleteProduit(id) {
+    try {
+      const response = await this.api.patch(`/produits/${id}`, {
+        deleted: true,
+      });
+      return response;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async restoreProduit(id) {
+    try {
+      return await this.api.patch(`/produits/${id}`, {
+        deleted: false,
+      });
+    } catch (error) {
+      throw error;
+    }
+  }
 }
