@@ -2,32 +2,47 @@ export class Product {
   constructor(data = {}) {
     this.id = data.id || this.generateId();
     this.nom = data.nom || "";
-    this.prix = data.prix || "";
-    this.quantite = data.quatite || "";
-    this.seuil_alerte = data.seuil_alerte || "";
-    this.image = data.image || "";
-    this.id_boutiquier = data.id_boutiquier || "";
-    this.categorie = data.categorie || "";
-    this.date_creation = data.date_creation || "";
+    this.prix = data.prix || 0;
+    this.quantite = data.quantite || 0;
+    this.seuil_alerte = data.seuil_alerte || 5;
+    this.image = data.image || null;
+    this.id_boutiquier = data.id_boutiquier || null;
+    this.article_id = data.article_id || null;
+    this.date_creation =
+      data.date_creation || new Date().toISOString().split("T")[0];
     this.deleted = data.deleted || false;
+    this.categorie = data.categorie || "";
   }
 
   generateId() {
-    return Math.random().toString(36).substr(2, 9);
+    return (
+      "prod_" +
+      Date.now().toString(36) +
+      Math.random().toString(36).substr(2, 5)
+    );
   }
 
   toJSON() {
     return {
       id: this.id,
-      nom: this.nom || "",
-      prix: this.prix || "",
-      quantite: this.quantite || "",
-      seuil_alerte: this.seuil_alerte || "",
-      image: this.image || "",
-      id_boutiquier: this.id_boutiquier || "",
-      categorie: this.categorie || "",
-      date_creation: this.date_creation || "",
-      deleted: this.deleted || false,
+      nom: this.nom,
+      prix: Number(this.prix),
+      quantite: Number(this.quantite),
+      seuil_alerte: Number(this.seuil_alerte),
+      image: this.image,
+      id_boutiquier: this.id_boutiquier,
+      article_id: this.article_id,
+      categorie: this.categorie,
+      date_creation: this.date_creation,
+      deleted: Boolean(this.deleted),
     };
+  }
+
+  isLowStock() {
+    return this.quantite <= this.seuil_alerte;
+  }
+
+  isOutOfStock() {
+    return this.quantite <= 0;
   }
 }

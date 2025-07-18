@@ -12,8 +12,25 @@ export class ProductService extends AbstractService {
       const produits = await this.api.get(
         `/produits?id_boutiquier=${boutiquierId}`
       );
+      const articles = await this.api.get(
+        `/articles?id_boutiquier=${boutiquierId}`
+      );
+      const articleMap = new Map();
+      articles.forEach((article) => {
+        articleMap.set(article.id, article);
+      });
 
-      return produits;
+      const produitsEnriched = produits.map((produit) => {
+        const articleAssocie = produit.article_id
+          ? articleMap.get(produit.article_id)
+          : null;
+        return {
+          ...produit,
+          categorie: articleAssocie?.titre || null,
+        };
+      });
+
+      return produitsEnriched;
     } catch (error) {
       throw error;
     }
@@ -27,12 +44,21 @@ export class ProductService extends AbstractService {
       const productData = product.toJSON();
 
       const productResponse = await this.api.post("/produits", {
-        id: idProduit,
+        id: String(idProduit),
         ...productData,
       });
 
       return productResponse;
     } catch (error) {
+      throw error;
+    }
+  }
+
+  async updateProduct(id, data) {
+    try {
+      return await this.api.patch(`/produits/${id}`, data);
+    } catch (error) {
+      console.error("Erreur updateProduct:", error);
       throw error;
     }
   }

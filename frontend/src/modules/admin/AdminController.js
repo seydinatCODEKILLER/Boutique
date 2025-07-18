@@ -84,8 +84,6 @@ export class AdminController {
 
   async #editBoutiquier(id) {
     try {
-      console.log(id);
-
       const boutiquier = this.cache.boutiquiers?.find((b) => b.id == id);
       console.log(boutiquier);
 

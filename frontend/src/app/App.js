@@ -7,6 +7,7 @@ import { AdminService } from "../modules/admin/AdminService.js";
 import { authRoutes } from "../modules/auth/auth.routes.js";
 import { AuthController } from "../modules/auth/AuthController.js";
 import { AuthService } from "../modules/auth/AuthService.js";
+import { ArticleService } from "../modules/boutiquier/article/ArticleService.js";
 import { ProductController } from "../modules/boutiquier/product/ProductController.js";
 import { boutiquierRoutes } from "../modules/boutiquier/product/products.routes.js";
 import { ProductService } from "../modules/boutiquier/product/ProductService.js";
@@ -39,6 +40,10 @@ export class App {
     });
 
     this.services.products = new ProductService({
+      api: this.services.api,
+    });
+
+    this.services.articles = new ArticleService({
       api: this.services.api,
     });
 

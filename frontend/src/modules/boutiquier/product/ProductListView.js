@@ -1,5 +1,6 @@
 import { FloatingActionButton } from "../../../components/button/FloatingButton.js";
 import { ProductCard } from "../../../components/card/ProductCard.js";
+import { ModernTable } from "../../../components/table/Table.js";
 import { AbstractView } from "../../../views/AbstractView.js";
 import { ProductFormModal } from "./ProductFormModal.js";
 
@@ -155,11 +156,11 @@ export class ProductView extends AbstractView {
         { header: "Quantite", key: "quantite" },
         {
           header: "Statut",
-          key: "statut",
+          key: "deleted",
           render: (item) => {
             return `<span class="badge badge-${
-              item.statut ? "warning" : "success"
-            }">${item.statut}</span>`;
+              item.deleted ? "warning" : "success"
+            }">${item.deleted ? "Indisponible" : "Disponible"}</span>`;
           },
         },
       ],
@@ -178,7 +179,7 @@ export class ProductView extends AbstractView {
             icon: (item) =>
               item.deleted ? "ri-refresh-line" : "ri-delete-bin-line",
             className: (item) => (item.deleted ? "btn-success" : "btn-error"),
-            action: (item) => (item.deleted ? "restore" : "delete"),
+            action: (item) => (!item.deleted ? "restore" : "delete"),
           },
         ],
       },
@@ -186,7 +187,7 @@ export class ProductView extends AbstractView {
         this.controller.handleProductAction(action, id, actionType),
     });
     container.appendChild(table.render());
-    table.update(this.localBoutiquiers, 1);
+    table.update(this.localProducts, 1);
   }
 
   cleanup() {

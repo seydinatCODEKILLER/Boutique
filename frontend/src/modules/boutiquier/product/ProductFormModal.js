@@ -13,7 +13,7 @@ export class ProductFormModal extends AbstractProductModal {
   }
 
   async processFormData(formData) {
-    await this.controller.createBoutiquier(formData);
+    await this.controller.createProduct(formData);
     this.app.eventBus.publish("boutiquiers:updated");
   }
 }

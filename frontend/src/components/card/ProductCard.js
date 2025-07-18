@@ -194,6 +194,7 @@ export class ProductCard {
   renderActions(item) {
     const actionsContainer = document.createElement("div");
     actionsContainer.className = "flex gap-2";
+    console.log(item);
 
     this.config.actions.items
       .filter((action) => !action.visible || action.visible(item))

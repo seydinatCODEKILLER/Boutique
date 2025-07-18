@@ -1,28 +1,75 @@
+import { ProductEditModal } from "./ProductEditModal.js";
+
 export class ProductController {
   constructor(app) {
     this.app = app;
     this.service = app.getService("products");
+    this.articleService = app.getService("articles");
     this.products = [];
+    this.articles = [];
     this.cache = {
       products: null,
+      articles: null,
       lastUpdated: null,
     };
   }
 
-  async loadProducts() {
+  async loadProducts(forceRefresh = false) {
+    if (!forceRefresh && this.cache.products && this.isCacheValid()) {
+      this.products = this.cache.products;
+      return this.products;
+    }
+
     const userId = this.app.store.state.user.id;
     const boutiquier = await this.service.getActorByIdUser(
       userId,
       "boutiquier"
     );
-    console.log(boutiquier.id);
-    console.log(boutiquier);
+    const products = await this.service.getProducts(boutiquier.id);
 
-    return this.service.getProducts(boutiquier.id);
+    this.products = products;
+    this.cache.products = products;
+    this.cache.lastUpdated = Date.now();
+
+    return products;
+  }
+
+  async loadArticles(forceRefresh = false) {
+    try {
+      if (!forceRefresh && this.cache.articles && this.isCacheValid()) {
+        this.articles = this.cache.articles;
+        return this.articles;
+      }
+
+      const userId = this.app.store.state.user.id;
+      const boutiquier = await this.service.getActorByIdUser(
+        userId,
+        "boutiquier"
+      );
+
+      if (!boutiquier) {
+        throw new Error("Boutiquier non trouvé");
+      }
+
+      const articles = await this.articleService.getArticles(boutiquier.id);
+      this.articles = articles;
+      this.cache.articles = articles;
+      this.cache.lastUpdated = Date.now();
+
+      return articles;
+    } catch (error) {
+      this.app.services.notifications.show(
+        "Impossible de charger les articles",
+        "error"
+      );
+      throw error;
+    }
   }
 
   async createProduct(ProductData) {
     try {
+      console.log(ProductData);
+
       const result = await this.service.createProduct(ProductData);
 
       this.cache.products = null;
@@ -31,7 +78,7 @@ export class ProductController {
         "success"
       );
 
-      this.app.eventBus.publish("boutiquiers:updated");
+      this.app.eventBus.publish("product:updated");
       return result;
     } catch (error) {
       this.app.services.notifications.show(
@@ -49,7 +96,7 @@ export class ProductController {
     );
   }
 
-  async handleBoutiquierAction(action, id, actionType) {
+  async handleProductAction(action, id, actionType) {
     switch (action) {
       case "edit":
         return this.#editProduct(id);
@@ -62,9 +109,46 @@ export class ProductController {
     }
   }
 
-  async #editProduct(id) {}
+  async #editProduct(id) {
+    try {
+      const product = this.cache.products?.find((b) => b.id == id);
 
-  async updateProduct(id, data) {}
+      if (!product) {
+        throw new Error("produit non trouvé");
+      }
+
+      const editModal = new ProductEditModal(this.app, product);
+      await editModal.open();
+    } catch (error) {
+      console.log(error);
+
+      this.app.services.notifications.show(
+        error.message || "Erreur lors de l'édition",
+        "error"
+      );
+    }
+  }
+
+  async updateProduct(id, data) {
+    try {
+      const result = await this.service.updateProduct(id, data);
+
+      this.cache.products = null;
+      this.app.services.notifications.show(
+        "produit mis à jour avec succès",
+        "success"
+      );
+
+      this.app.eventBus.publish("produit:updated");
+      return result;
+    } catch (error) {
+      this.app.services.notifications.show(
+        error.message || "Erreur lors de la mise à jour",
+        "error"
+      );
+      throw error;
+    }
+  }
 
   async #deleteProduct(id) {}
 
