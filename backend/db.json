@@ -38,9 +38,7 @@
     {
       "id": "1",
       "id_utilisateur": "3",
-      "id_boutiquier": [
-        "1"
-      ]
+      "id_boutiquier": ["1"]
     }
   ],
   "admin": [
@@ -53,6 +51,41 @@
     {
       "id": "1",
       "id_utilisateur": "1"
+    }
+  ],
+  "produits": [
+    {
+      "id": "1",
+      "nom": "Lait en poudre Nido",
+      "prix": 3500,
+      "quantite": 50,
+      "seuil_alerte": 10,
+      "image": "https://pikaso.cdnpk.net/public/production/prompt-templates/211.png?preview=1",
+      "id_boutiquier": "1",
+      "categorie": "Alimentation",
+      "date_creation": "2023-11-20",
+      "deleted": false
+    }
+  ],
+  "articles": [
+    {
+      "id": "1",
+      "titre": "Promotion hivernale",
+      "contenu": "Réduction de 20% sur les produits laitiers",
+      "id_boutiquier": "1",
+      "date_publication": "2023-11-20",
+      "deleted": false
+    }
+  ],
+  "dettes": [
+    {
+      "id": "1",
+      "id_client": "1",
+      "id_boutiquier": "1",
+      "montant": 15000,
+      "statut": "en_attente",
+      "date_demande": "2023-11-20",
+      "date_traitement": null
     }
   ]
 }

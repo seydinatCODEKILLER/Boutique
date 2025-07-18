@@ -1,12 +1,14 @@
-export class BoutiquierCard {
+export class ProductCard {
   constructor(config) {
     this.config = {
       data: [],
-      itemsPerPage: 6,
-      containerId: "boutiquier-cards",
+      itemsPerPage: 8,
+      containerId: "product-cards",
       actions: null,
       onAction: null,
-      emptyMessage: "Aucun boutiquier disponible",
+      emptyMessage: "Aucun produit disponible",
+      showCategory: true,
+      showStockAlert: true,
       ...config,
     };
 
@@ -27,7 +29,7 @@ export class BoutiquierCard {
 
     this.grid = document.createElement("div");
     this.grid.className =
-      "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6";
+      "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6";
     this.grid.id = this.config.containerId;
 
     this.createPagination();
@@ -74,91 +76,112 @@ export class BoutiquierCard {
     const itemsToShow = this.config.data.slice(startIndex, endIndex);
 
     if (itemsToShow.length === 0) {
-      const emptyMessage = document.createElement("div");
-      emptyMessage.className =
-        "col-span-full text-center p-8 text-base-content/50";
-      emptyMessage.textContent = this.config.emptyMessage;
-      this.grid.appendChild(emptyMessage);
+      this.showEmptyMessage();
       return;
     }
 
-    itemsToShow.forEach((boutiquier) => {
-      this.grid.appendChild(this.createBoutiquierCard(boutiquier));
+    itemsToShow.forEach((product) => {
+      this.grid.appendChild(this.createProductCard(product));
     });
 
     this.updatePagination();
   }
 
-  createBoutiquierCard(boutiquier) {
+  createProductCard(product) {
     const card = document.createElement("div");
     card.className =
-      "card bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-xl transition-all duration-300";
-    card.dataset.id = boutiquier.id;
+      "card bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-xl transition-all duration-300 h-full flex flex-col";
+    card.dataset.id = product.id;
 
-    // Card Image (Avatar)
+    // Card Image
     const cardImage = document.createElement("div");
     cardImage.className =
       "relative overflow-hidden h-48 bg-gray-100 dark:bg-gray-700 flex items-center justify-center";
 
-    // Par :
-    let avatarElement;
-    if (boutiquier.avatar && boutiquier.avatar.trim() !== "") {
-      avatarElement = document.createElement("img");
-      avatarElement.src = boutiquier.avatar;
-      avatarElement.className = "w-full rounded-lg object-cover";
-      avatarElement.alt = `${boutiquier.prenom} ${boutiquier.nom}`;
+    const img = product.image
+      ? document.createElement("img")
+      : document.createElement("div");
+
+    if (product.image) {
+      img.src = product.image;
+      img.className = "w-full h-full object-cover";
+      img.alt = product.nom;
+      img.loading = "lazy";
     } else {
-      avatarElement = document.createElement("div");
-      avatarElement.className =
-        "w-24 h-24 rounded-full bg-primary text-white flex items-center justify-center text-4xl";
-      avatarElement.textContent =
-        boutiquier.nom.charAt(0).toUpperCase() +
-        boutiquier.prenom.charAt(0).toUpperCase();
+      img.className = "text-4xl text-gray-400";
+      img.innerHTML = '<i class="ri-shopping-bag-line"></i>';
     }
 
-    // Status badge
-    const statusBadge = document.createElement("div");
-    statusBadge.className = `absolute top-2 right-2 badge ${
-      boutiquier.deleted ? "badge-error" : "badge-success"
-    }`;
-    statusBadge.textContent = boutiquier.deleted ? "Inactif" : "Actif";
+    // Stock Alert Badge
+    if (
+      this.config.showStockAlert &&
+      product.quantite <= product.seuil_alerte
+    ) {
+      const stockBadge = document.createElement("div");
+      stockBadge.className = "absolute top-2 right-2 badge badge-warning gap-1";
+      stockBadge.innerHTML = `<i class="ri-alarm-warning-line"></i> Stock faible`;
+      cardImage.appendChild(stockBadge);
+    }
 
-    cardImage.appendChild(avatarElement);
-    cardImage.appendChild(statusBadge);
+    cardImage.appendChild(img);
 
     // Card Body
     const cardBody = document.createElement("div");
-    cardBody.className = "p-4";
+    cardBody.className = "p-4 flex-grow flex flex-col";
 
-    // Boutiquier Name
+    // Product Name
     const name = document.createElement("h3");
-    name.className = "text-lg font-medium truncate mb-1";
-    name.textContent = `${boutiquier.prenom} ${boutiquier.nom}`;
+    name.className = "text-lg font-semibold mb-2 line-clamp-2";
+    name.textContent = product.nom;
 
-    // Email
-    const email = document.createElement("p");
-    email.className =
-      "text-xs font-medium text-gray-600 dark:text-gray-300 truncate mb-2";
-    email.textContent = boutiquier.email;
+    // Category
+    if (this.config.showCategory && product.categorie) {
+      const category = document.createElement("div");
+      category.className = "badge badge-outline badge-sm mb-2 self-start";
+      category.textContent = product.categorie;
+      cardBody.appendChild(category);
+    }
 
-    // Telephone
-    const telephone = document.createElement("div");
-    telephone.className = "flex items-center text-sm mb-3";
-    telephone.innerHTML = `<i class="ri-phone-line mr-2"></i> ${boutiquier.telephone}`;
+    // Description
+    if (product.description) {
+      const desc = document.createElement("p");
+      desc.className =
+        "text-sm text-gray-600 dark:text-gray-300 mb-3 line-clamp-2";
+      desc.textContent = product.description;
+      cardBody.appendChild(desc);
+    }
+
+    // Price
+    const price = document.createElement("div");
+    price.className = "text-xl font-bold text-primary mt-auto mb-3";
+    price.textContent = `${product.prix} FCFA`;
+
+    // Stock
+    const stock = document.createElement("div");
+    stock.className = "flex items-center text-sm mb-3";
+    stock.innerHTML = `
+      <i class="ri-stack-line mr-2"></i>
+      <span>Stock: ${product.quantite}</span>
+      ${
+        product.seuil_alerte
+          ? `<span class="text-xs ml-2">(Seuil: ${product.seuil_alerte})</span>`
+          : ""
+      }
+    `;
 
     // Actions
     const cardActions = document.createElement("div");
     cardActions.className =
-      "flex justify-end items-center pt-2 border-t border-base-200";
+      "flex justify-end items-center pt-2 border-t border-base-200 mt-auto";
 
     if (this.config.actions) {
-      cardActions.appendChild(this.renderActions(boutiquier));
+      cardActions.appendChild(this.renderActions(product));
     }
 
     // Assemble card body
     cardBody.appendChild(name);
-    cardBody.appendChild(email);
-    cardBody.appendChild(telephone);
+    cardBody.appendChild(price);
+    cardBody.appendChild(stock);
     cardBody.appendChild(cardActions);
 
     // Assemble card
@@ -179,19 +202,30 @@ export class BoutiquierCard {
         button.className = `btn btn-sm ${
           typeof action.className === "function"
             ? action.className(item)
-            : action.className || ""
+            : action.className || "btn-outline"
         }`;
 
         button.innerHTML = `
-        <i class="${
-          typeof action.icon === "function" ? action.icon(item) : action.icon
-        }"></i>
-        ${
-          typeof action.label === "function" ? action.label(item) : action.label
-        }
-      `;
+          <i class="${
+            typeof action.icon === "function" ? action.icon(item) : action.icon
+          }"></i>
+          ${
+            action.label
+              ? `
+            <span class="hidden sm:inline">
+              ${
+                typeof action.label === "function"
+                  ? action.label(item)
+                  : action.label
+              }
+            </span>
+          `
+              : ""
+          }
+        `;
 
-        button.onclick = () => {
+        button.onclick = (e) => {
+          e.stopPropagation();
           const actionType =
             typeof action.action === "function" ? action.action(item) : null;
           this.config.onAction(action.name, item.id, actionType);
@@ -203,6 +237,17 @@ export class BoutiquierCard {
     return actionsContainer;
   }
 
+  showEmptyMessage() {
+    const emptyMessage = document.createElement("div");
+    emptyMessage.className =
+      "col-span-full text-center p-8 text-base-content/50";
+    emptyMessage.innerHTML = `
+      <i class="ri-emotion-sad-line text-4xl mb-2"></i>
+      <p>${this.config.emptyMessage}</p>
+    `;
+    this.grid.appendChild(emptyMessage);
+  }
+
   updatePagination() {
     const totalPages = Math.ceil(
       this.config.data.length / this.config.itemsPerPage
@@ -210,25 +255,10 @@ export class BoutiquierCard {
 
     this.prevBtn.disabled = this.currentPage === 1;
     this.nextBtn.disabled = this.currentPage === totalPages || totalPages === 0;
-    this.paginationInfo.textContent = `Page ${
-      this.currentPage
-    } sur ${totalPages} (${totalPages > 0 ? totalPages : 0} pages)`;
+    this.paginationInfo.textContent = `Page ${this.currentPage} sur ${totalPages} • ${this.config.data.length} produits`;
   }
 
   setupEvents() {
-    if (this.config.onAction) {
-      this.grid.addEventListener("click", (e) => {
-        const actionItem = e.target.closest("[data-action]");
-        if (actionItem) {
-          e.preventDefault();
-          this.config.onAction(
-            actionItem.dataset.action,
-            actionItem.dataset.id
-          );
-        }
-      });
-    }
-
     this.prevBtn.addEventListener("click", () => {
       if (this.currentPage > 1) {
         this.currentPage--;
@@ -253,13 +283,11 @@ export class BoutiquierCard {
     this.renderCards();
   }
 
-  cleanup() {
-    if (this.grid && this.config.onAction) {
-      this.grid.removeEventListener("click", this.handleAction);
-    }
-  }
-
   render() {
     return this.container;
+  }
+
+  cleanup() {
+    // Cleanup si nécessaire
   }
 }

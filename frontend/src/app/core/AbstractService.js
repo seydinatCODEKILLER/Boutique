@@ -19,4 +19,14 @@ export class AbstractService {
       throw new Error("Impossible de générer un nouvel ID");
     }
   }
+
+  async getActorByIdUser(id, entity) {
+    try {
+      const actors = await this.api.get(`/${entity}`);
+      return actors.find((actor) => actor.id_utilisateur == id);
+    } catch (error) {
+      console.error("Erreur lors de la recuperation:", error);
+      throw new Error("Erreur lors de la recuperation");
+    }
+  }
 }
