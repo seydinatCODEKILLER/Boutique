@@ -38,9 +38,7 @@
     {
       "id": "1",
       "id_utilisateur": "3",
-      "id_boutiquier": [
-        "1"
-      ]
+      "id_boutiquier": ["1"]
     }
   ],
   "admin": [
@@ -79,7 +77,7 @@
       "deleted": false
     },
     {
-      "id": 2,
+      "id": "2",
       "titre": "Cosmetiques",
       "contenu": "Reduction du meilleur cosmetique",
       "id_boutiquier": "1",

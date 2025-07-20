@@ -1,6 +1,7 @@
 import { AuthGuard } from "../../../app/core/guard/AuthGuard.js";
 import { BoutiquierGuard } from "../../../app/core/guard/RoleGuard.js";
 import { ArticleView } from "../article/ArticleListView.js";
+import { DetteView } from "../dette/DetteListView.js";
 import { ProductView } from "./ProductListView.js";
 
 export const boutiquierRoutes = [
@@ -23,6 +24,17 @@ export const boutiquierRoutes = [
       requiresAuth: true,
       requiredRole: "boutiquier",
       title: "Mes articles",
+    },
+    guards: [AuthGuard, BoutiquierGuard],
+  },
+  {
+    path: "/boutiquier/dettes",
+    component: DetteView,
+    meta: {
+      layout: "boutiquier",
+      requiresAuth: true,
+      requiredRole: "boutiquier",
+      title: "Mes Dettes",
     },
     guards: [AuthGuard, BoutiquierGuard],
   },

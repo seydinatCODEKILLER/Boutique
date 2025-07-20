@@ -9,6 +9,8 @@ import { AuthController } from "../modules/auth/AuthController.js";
 import { AuthService } from "../modules/auth/AuthService.js";
 import { ArticleController } from "../modules/boutiquier/article/ArticleController.js";
 import { ArticleService } from "../modules/boutiquier/article/ArticleService.js";
+import { DetteController } from "../modules/boutiquier/dette/DetteController.js";
+import { DetteService } from "../modules/boutiquier/dette/DetteService.js";
 import { ProductController } from "../modules/boutiquier/product/ProductController.js";
 import { boutiquierRoutes } from "../modules/boutiquier/product/products.routes.js";
 import { ProductService } from "../modules/boutiquier/product/ProductService.js";
@@ -48,11 +50,16 @@ export class App {
       api: this.services.api,
     });
 
+    this.services.dettes = new DetteService({
+      api: this.services.api,
+    });
+
     this.controllers = {
       Auth: new AuthController(this),
       admin: new AdminController(this),
       product: new ProductController(this),
       article: new ArticleController(this),
+      dette: new DetteController(this),
     };
 
     this.router = new Router(this, {

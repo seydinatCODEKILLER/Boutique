@@ -19,6 +19,7 @@ export class ModernTable {
       compact: false,
       bordered: false,
       loading: false,
+      initialData: [],
       loadingMessage: "Chargement en cours...",
       hiddenColumns: [], // Colonnes masquées par défaut
       filters: {}, // Filtres multi-colonnes
@@ -34,7 +35,6 @@ export class ModernTable {
     this.table = null;
     this.searchInput = null;
     this.eventListeners = []; // Pour stocker les listeners pour le destroy
-
     this.init();
   }
 
@@ -59,6 +59,11 @@ export class ModernTable {
     if (this.container && this.container.parentNode) {
       this.container.parentNode.removeChild(this.container);
     }
+  }
+
+  async getDom() {
+    await Promise.resolve(); // ou `await new Promise(r => requestAnimationFrame(r))`
+    return this.container;
   }
 
   createTableContainer() {
@@ -407,9 +412,11 @@ export class ModernTable {
     const startIndex = (this.currentPage - 1) * this.config.itemsPerPage;
     const endIndex = startIndex + this.config.itemsPerPage;
     let itemsToShow = this.config.data.slice(startIndex, endIndex);
+    console.log("✅ Données reçues par ModernTable:", this.config.data);
 
     // Apply multi-column filters
     itemsToShow = this.applyMultiColumnFilters(itemsToShow);
+    console.log(itemsToShow);
 
     // Apply search filter if searchable
     if (this.config.searchable && this.searchInput && this.searchInput.value) {
@@ -459,6 +466,7 @@ export class ModernTable {
     }
 
     itemsToShow.forEach((item, index) => {
+      console.log("ITEM RENDU:", item);
       const row = document.createElement("tr");
 
       // Appliquer les classes personnalisées pour la ligne
@@ -992,5 +1000,10 @@ export class ModernTable {
     this.currentPage = 1;
     this.renderTableBody();
     this.updatePagination();
+  }
+
+  set data(newData) {
+    this.config.data = Array.isArray(newData) ? newData : [];
+    this.update(this.config.data, 1);
   }
 }

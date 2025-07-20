@@ -384,6 +384,8 @@ export class AbstractProductModal {
   }
 
   close() {
-    this.modal.close();
+    if (this.modal) {
+      this.modal.close();
+    }
   }
 }
