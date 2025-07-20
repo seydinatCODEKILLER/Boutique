@@ -8,11 +8,17 @@ export class DetteService extends AbstractService {
   }
 
   async acceptDette(id) {
-    return this.api.patch(`${this.endpoint}/${id}`, { statut: "accepted" });
+    return this.api.patch(`${this.endpoint}/${id}`, {
+      statut: "accepted",
+      date_traitement: new Date().toISOString().split("T")[0],
+    });
   }
 
   async rejectDette(id) {
-    return this.api.patch(`${this.endpoint}/${id}`, { statut: "rejected" });
+    return this.api.patch(`${this.endpoint}/${id}`, {
+      statut: "rejected",
+      date_traitement: new Date().toISOString().split("T")[0],
+    });
   }
 
   async getDetteByBoutiquier(boutiquierId) {
