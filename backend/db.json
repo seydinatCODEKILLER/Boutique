@@ -28,7 +28,7 @@
       "prenom": "Anthia",
       "email": "anthia020@gmail.com",
       "password": "liverpool",
-      "avatar": "",
+      "avatar": "https://pikaso.cdnpk.net/public/production/prompt-templates/211.png?preview=1",
       "role": "client",
       "telephone": "772873454",
       "deleted": false
@@ -38,7 +38,7 @@
     {
       "id": "1",
       "id_utilisateur": "3",
-      "id_boutiquier": ["1"]
+      "has_account": true
     }
   ],
   "admin": [
@@ -94,6 +94,14 @@
       "statut": "en_attente",
       "date_demande": "2023-11-20",
       "date_traitement": null
+    }
+  ],
+  "boutiquier_client": [
+    {
+      "id": "1",
+      "id_boutiquier": "1",
+      "id_client": "1",
+      "date_association": "2023-11-20"
     }
   ]
 }

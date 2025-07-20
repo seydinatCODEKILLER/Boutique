@@ -48,13 +48,18 @@ export class BoutiquierLayout {
         },
         {
           text: "Mes Articles",
-          icon: "ri-user-3-line",
+          icon: "ri-article-line",
           path: "/boutiquier/articles",
         },
         {
           text: "Demandes",
-          icon: "ri-user-3-line",
+          icon: "ri-shopping-bag-3-line",
           path: "/boutiquier/dettes",
+        },
+        {
+          text: "Mes Clients",
+          icon: "ri-cloud-line",
+          path: "/boutiquier/clients",
         },
       ],
       onNavigate: (path) => this.app.router.navigateTo(path),
