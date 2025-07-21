@@ -30,10 +30,7 @@ export default class ApiService {
     return response.json();
   }
 
-  async delete(endpoint, id) {
-    const response = await fetch(`${this.baseURL}/${endpoint}`, {
-      method: "DELETE",
-    });
-    return response.json();
+  async delete(endpoint) {
+      await fetch(`${this.baseURL}${endpoint}`, {method: "DELETE"});
   }
 }

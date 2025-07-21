@@ -251,8 +251,15 @@ export class AbstractClientModal {
         value: "",
         error: "",
         validator: (v) => {
-          if (!this.form.querySelector('[name="has_account"]').checked)
+          const isEditing = !!this.config.client;
+          const hasAccount = this.form?.querySelector(
+            '[name="has_account"]'
+          )?.checked;
+          if (!hasAccount) return "";
+          if (isEditing && (!v || v.trim() === "")) {
             return "";
+          }
+
           return (
             validators.required(v) ||
             validators.minLength(v, 8) ||
@@ -295,7 +302,7 @@ export class AbstractClientModal {
 
   async getFormData() {
     const formData = new FormData(this.form);
-    const hasAccount = formData.get("has_account") === "on";
+    const hasAccount = this.form.querySelector('[name="has_account"]').checked;
     const file = this.form.querySelector('[name="avatar"]').files[0];
     const avatarBase64 = file
       ? await this.convertToBase64(file)
@@ -308,7 +315,7 @@ export class AbstractClientModal {
         ? `+221${formData.get("telephone")}`
         : null,
       id_boutiquier: this.app.store.state.user.id,
-      password: hasAccount ? formData.get("password") : "",
+      password: hasAccount ? formData.get("password") : undefined,
       avatar: avatarBase64,
       has_account: hasAccount,
     };

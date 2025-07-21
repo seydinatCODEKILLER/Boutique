@@ -4,7 +4,7 @@ export class Client extends User {
   constructor(data = {}) {
     super(data);
     this.role = "client";
-    this.has_account = data.has_account || (data.email && data.password);
+    this.has_account = data.has_account || (data.email && data.password)
   }
 
   static createClientSansCompte(data = {}) {
@@ -29,7 +29,7 @@ export class Client extends User {
     });
   }
 
-  async addBoutiquier(id,boutiquierId,clientId, apiService) {
+  static async addBoutiquier(id,boutiquierId,clientId, apiService) {
     try {
       await apiService.post("/boutiquier_client", {
         id: id,
@@ -44,10 +44,10 @@ export class Client extends User {
     }
   }
 
-  async removeBoutiquier(boutiquierId, apiService) {
+  static async removeBoutiquier(id_client,boutiquierId, apiService) {
     try {
       const associations = await apiService.get(
-        `/boutiquier_client?id_boutiquier=${boutiquierId}&id_client=${this.id}`
+        `/boutiquier_client?id_boutiquier=${boutiquierId}&id_client=${id_client}`
       );
 
       if (associations.length > 0) {

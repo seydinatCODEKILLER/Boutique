@@ -1,4 +1,5 @@
 import { Modal } from "../../../components/modal/Modal.js";
+import { ClientEditModal } from "./ClientEditModal.js";
 
 export class ClientController {
   constructor(app) {
@@ -52,7 +53,7 @@ export class ClientController {
   async handleClientAction(action, id, actionType) {
     switch (action) {
       case "edit":
-      // return this.#editBoutiquier(id);
+        return this.#editClient(id);
       case "toggleStatus":
         return actionType === "delete"
           ? this.#deleteClient(id)
@@ -77,6 +78,51 @@ export class ClientController {
     } catch (error) {
       this.app.services.notifications.show(
         error.message || "Erreur lors de la création",
+        "error"
+      );
+      throw error;
+    }
+  }
+
+  async #editClient(id) {
+    try {
+      console.log(id);
+      
+      const client = this.cache.clients?.find((b) => b.id == id);
+      console.log(client);
+
+      if (!client) {
+        throw new Error("client non trouvé");
+      }
+
+      const editModal = new ClientEditModal(this.app, client);
+      editModal.open();
+    } catch (error) {
+      this.app.services.notifications.show(
+        error.message || "Erreur lors de l'édition",
+        "error"
+      );
+    }
+  }
+
+  async updateClient(id, data) {
+    try {
+      console.log(data);
+
+      const result = await this.service.updateClient(id, data);
+
+      this.cache.clients = null;
+      this.app.services.notifications.show(
+        "client mis à jour avec succès",
+        "success"
+      );
+
+      this.app.eventBus.publish("client:updated");
+      return result;
+    } catch (error) {
+      console.log(error);
+      this.app.services.notifications.show(
+        error.message || "Erreur lors de la mise à jour",
         "error"
       );
       throw error;

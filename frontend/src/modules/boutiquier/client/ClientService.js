@@ -48,15 +48,11 @@ export class ClientService extends AbstractService {
       const idUtilisateur = String(await this.generateId("/utilisateurs"));
       const idClient = String(await this.generateId("/client"));
 
-      // Création de l'instance Client
       const client = data.has_account
         ? Client.createClientAvecCompte({ ...data, id: idUtilisateur })
         : Client.createClientSansCompte({ ...data, id: idUtilisateur });
 
-      // Préparation des données pour l'API
       const { utilisateur, client: clientData } = client.toApiFormat();
-
-      // Enregistrement en parallèle
       const [userResponse, clientResponse] = await Promise.all([
         this.api.post("/utilisateurs", {
           id: String(idUtilisateur),
@@ -68,12 +64,17 @@ export class ClientService extends AbstractService {
           id_utilisateur: idUtilisateur,
         }),
       ]);
-
       if (data.id_boutiquier) {
-              const idBoutiquier_client = String(await this.generateId("/boutiquier_client"));
-        await client.addBoutiquier(idBoutiquier_client,data.id_boutiquier, idClient, this.api);
+        const idBoutiquier_client = String(
+          await this.generateId("/boutiquier_client")
+        );
+        await client.addBoutiquier(
+          idBoutiquier_client,
+          data.id_boutiquier,
+          idClient,
+          this.api
+        );
       }
-
       return {
         ...userResponse,
         ...clientResponse,
@@ -82,6 +83,147 @@ export class ClientService extends AbstractService {
     } catch (error) {
       console.error("Erreur lors de la création du client:", error);
       throw new Error(`Échec de la création du client: ${error.message}`);
+    }
+  }
+
+  // async updateClient(id, data) {
+  //   try {
+  //     console.log("Données reçues pour mise à jour:", data);
+
+  //     // 1. Préparation des données de mise à jour
+  //     const updates = {
+  //       utilisateur: {
+  //         nom: data.nom,
+  //         prenom: data.prenom,
+  //         telephone: data.telephone,
+  //         avatar: data.avatar,
+  //         email: data.has_account ? data.email : "",
+  //         password:
+  //           data.has_account && data.password ? data.password : "",
+  //           role: data.role
+  //       },
+  //       client: {
+  //         id_utilisateur: id,
+  //         has_account: data.has_account,
+  //       },
+  //     };
+
+  //     // 2. Mise à jour des entités en parallèle
+  //     const [userResponse, clientResponse] = await Promise.all([
+  //       this.api.patch(`/utilisateurs/${id}`, updates.utilisateur),
+  //       this.api.patch(`/client/${data.id_client}`, updates.client),
+  //     ]);
+
+  //     // 3. Gestion des associations boutiquiers
+  //     if (data.id_boutiquier) {
+  //       // Suppression des anciennes associations
+  //       const currentAssociations = await this.api.get(
+  //         `/boutiquier_client?id_client=${data.id_client}`
+  //       );
+
+  //       await Promise.all(
+  //         currentAssociations.map((assoc) =>
+  //           Client.removeBoutiquier(
+  //             data.id_client,
+  //             assoc.id_boutiquier,
+  //             this.api
+  //           )
+  //         )
+  //       );
+
+  //       // Création de la nouvelle association
+  //       const idBoutiquierClient = String(
+  //         await this.generateId("/boutiquier_client")
+  //       );
+  //       await Client.addBoutiquier(
+  //         idBoutiquierClient,
+  //         data.id_boutiquier,
+  //         data.id_client,
+  //         this.api
+  //       );
+  //     }
+
+  //     console.log("Mise à jour réussie");
+  //      return {
+  //        success: true,
+  //        utilisateur: userResponse,
+  //        client: clientResponse,
+  //      };
+  //   } catch (error) {
+  //     console.error("Échec de la mise à jour:", error);
+  //     throw new Error(`Échec de la mise à jour: ${error.message}`);
+  //   }
+  // }
+
+  async updateClient(id, data) {
+    try {
+
+
+      const updatePayload = {
+        utilisateur: {},
+        client: {},
+      };
+
+      // Données utilisateur
+      updatePayload.utilisateur = {
+        nom: data.nom,
+        prenom: data.prenom,
+        telephone: data.telephone,
+        avatar: data.avatar,
+        role: "client",
+      };
+
+      // Gestion spécifique du compte
+      if (data.has_account) {
+        updatePayload.utilisateur.email = data.email ;
+        if (data.password) {
+          updatePayload.utilisateur.password = data.password; // À hasher côté serveur
+        }
+      } else {
+        updatePayload.utilisateur.email = "";
+        updatePayload.utilisateur.password = "";
+      }
+
+      updatePayload.client = {
+        has_account: data.has_account,
+      };
+
+      const [userResponse, clientResponse] = await Promise.all([
+        this.api.patch(
+          `/utilisateurs/${id}`,
+          updatePayload.utilisateur
+        ),
+        this.api.patch(`/client/${data.id_client}`, updatePayload.client),
+      ]);
+
+      if (
+        data.id_boutiquier 
+      ) {
+        const existingAssociations = await this.api.get(
+          `/boutiquier_client?id_client=${data.id_client}`
+        );
+
+        await Promise.all(
+          existingAssociations.map((assoc) =>
+            this.api.delete(`/boutiquier_client/${assoc.id}`)
+          )
+        );
+        const idBoutiquierClient = String(await this.generateId("/boutiquier_client"));
+        await this.api.post("/boutiquier_client", {
+          id: idBoutiquierClient,
+          id_boutiquier: data.id_boutiquier,
+          id_client: data.id_client, 
+          date_association: new Date().toISOString().split("T")[0]})
+      }
+
+
+      return {
+        ...userResponse,
+        ...clientResponse,
+      };
+    } catch (error) {
+      console.error("Erreur dans updateClient:", error);
+      throw new Error(`Échec de la mise à jour du client: ${error.message}`);
     }
   }
 
